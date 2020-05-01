@@ -1,2 +1,4 @@
 .DS_Store
 .pyc
+datasets/
+models/__pycache__/

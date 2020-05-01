@@ -11,7 +11,7 @@ class ImageRNN(nn.Module):
 		self.n_outputs = n_outputs  # 10
 		# Basic RNN layer
 		self.basic_rnn = nn.RNN(self.n_inputs, self.n_neurons)
-		# Followed by a fully connected layer
+		# Followed by a fully connected layer (LSTM is a better option)
 		self.FC = nn.Linear(self.n_neurons, self.n_outputs)
 
 	def init_hidden(self, ):

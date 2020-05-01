@@ -5,7 +5,7 @@ import torch
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # 1: input channals 32: output channels, 3: kernel size, 1: stride
+        # 1: input channals 32: output channels, 3: kernel size, 1: stride, padding = 0 (NO padding)
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         # It will 'filter' out some of the input by the probability(assign zero)
@@ -20,11 +20,14 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = F.relu(x)
+        
         x = self.conv2(x)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
+        
         x = torch.flatten(x, 1)
+
         x = self.fc1(x)
         x = F.relu(x)
         x = self.dropout2(x)
