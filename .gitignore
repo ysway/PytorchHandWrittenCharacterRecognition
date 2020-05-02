@@ -1,4 +1,6 @@
+*.py~
 .DS_Store
 .pyc
 datasets/
 models/__pycache__/
+*.pt

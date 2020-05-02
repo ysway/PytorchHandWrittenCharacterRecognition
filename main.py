@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+# For GPU Training Library
+# Ref: https://github.com/xinntao/ESRGAN/issues/94#issuecomment-612903759
+import ctypes
 
 # functions to show an image
 def imsave(img):
@@ -20,7 +23,7 @@ def imsave(img):
     im = Image.fromarray(npimg)
     im.save("./results/your_file.jpeg")
 
-def train_cnn(log_interval, model, device, train_loader, optimizer, epoch):
+def train_cnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -30,12 +33,13 @@ def train_cnn(log_interval, model, device, train_loader, optimizer, epoch):
         output = model(data)
         loss = F.nll_loss(output, target)
         loss.backward(); optimizer.step()
+        loss_list.append(loss.data.to(torch.device('cpu')).numpy()) #loss recorder
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def train_rnn(log_interval, model, device, train_loader, optimizer, epoch):
+def train_rnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -47,12 +51,13 @@ def train_rnn(log_interval, model, device, train_loader, optimizer, epoch):
         criterion = torch.nn.CrossEntropyLoss()
         loss = criterion(outputs, target)
         loss.backward(); optimizer.step()
+        loss_list.append(loss.data.to(torch.device('cpu')).numpy()) #loss recorder
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def train_customcnn(log_interval, model, device, train_loader, optimizer, epoch):
+def train_customcnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -64,6 +69,7 @@ def train_customcnn(log_interval, model, device, train_loader, optimizer, epoch)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+        loss_list.append(loss.data.to(torch.device('cpu')).numpy()) #loss recorder
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
@@ -90,14 +96,17 @@ def test(model, device, test_loader, IfRNN):
         100. * correct / len(test_loader.dataset)))
 
 def main():
-    epoches = 1
-    gamma = 0.7
+    epoches = 5
+    gamma = 0.1
     log_interval = 10
     torch.manual_seed(1)
     save_model = True
+    TRAIN_SIZE = 6900
+    TEST_SIZE = 2000
+    loss_list = list()    
 
     #Tranin Method [1: RNN, 2: CustomCNN, 3, CNN]
-    Train_Methon = 2
+    Train_Method = 2
 
     N_STEPS = 28
     N_INPUTS = 28
@@ -107,36 +116,42 @@ def main():
     # Check whether you can use Cuda
     use_cuda = torch.cuda.is_available()
     # Use Cuda if you can
-    device = torch.device("cuda" if use_cuda else "cpu")
+    if use_cuda:
+        device = torch.device("cuda")
+        ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
+    else:
+        device = torch.device("cpu")
 
 
     ######################3   Torchvision    ###########################3
     # Use data predefined loader
     # Pre-processing by using the transform.Compose
     # divide into batches
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 2, 'pin_memory': True} if use_cuda else {'num_workers': 2}
     train_loader = torch.utils.data.DataLoader(
         datasets.EMNIST('./datasets', 'byclass', train=True, download=True,
                        transform=transforms.Compose([
                            transforms.ToTensor()
                        ])),
-        batch_size=64, shuffle=True, **kwargs)
+        batch_size=TRAIN_SIZE, shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.EMNIST('./datasets', 'byclass', train=False, transform=transforms.Compose([
                            transforms.ToTensor()
                        ])),
-        batch_size=1000, shuffle=True, **kwargs)
+        batch_size=TEST_SIZE, shuffle=True, **kwargs)
 
     # get some random training images
+    '''
     dataiter = iter(train_loader)
     images, labels = dataiter.next()
     img = torchvision.utils.make_grid(images)
     imsave(img)
+    '''
 
     # #####################    Build your network and run   ############################
-    if Train_Methon == 1:
+    if Train_Method == 1:
         model = ImageRNN(64, N_STEPS, N_INPUTS, N_NEURONS, N_OUTPUTS, device).to(device)
-    elif Train_Methon == 2:
+    elif Train_Method == 2:
         model = CustomCNN().to(device)
     else:
         model = Net().to(device)
@@ -146,19 +161,25 @@ def main():
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
     for epoch in range(1, epoches + 1):
-        if Train_Methon == 1:
-            train_rnn(log_interval, model, device, train_loader, optimizer, epoch)
+        if Train_Method == 1:
+            train_rnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list)
         
-            train_customcnn(log_interval, model, device, train_loader, optimizer, epoch)
+            train_customcnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list)
         else:
-            train_cnn(log_interval, model, device, train_loader, optimizer, epoch)
+            train_cnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list)
 
-        test(model, device, test_loader, RNN)
+        test(model, device, test_loader, Train_Method)
         scheduler.step()
 
     if save_model:
         torch.save(model.state_dict(), "./results/EMNIST_cnn.pt")
 
+    plt.plot(loss_list, label = 'CustomCNN')
+    plt.legend(loc='best')
+    plt.xlabel('Epoch/100')
+    plt.ylabel('Loss')
+    plt.ylim((0, 3))
+    plt.show()
 
 if __name__ == '__main__':
     main()
