@@ -158,7 +158,7 @@ def main():
 
     #######################    Build your network   ############################
     if Train_Method == 1:
-        model = ImageRNN().to(device)
+        model = ImageRNN(64, N_STEPS, N_INPUTS, N_NEURONS, N_OUTPUTS, device).to(device)
         Model_label = 'DefaultRNN'
     elif Train_Method == 2:
         model = CustomCNN().to(device)
