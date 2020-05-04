@@ -1,2 +1,5 @@
-
+*.py~
+datasets/
+results/*.pt
 .DS_Store
+

@@ -13,7 +13,7 @@ class Net(nn.Module):
         self.dropout2 = nn.Dropout2d(0.5)
         # Fully connected layer: input size, output size
         self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc2 = nn.Linear(128, 62) # Output size depends on how many classes the datasets has
     # it is inherit from nn.Module, nn.Module have both forward() and backward()
     # In this case, forward() link all layers together,
     # backward is already implemented to compute the gradient descents.
