@@ -23,7 +23,7 @@ def imsave(img, Model_label):
     npimg = img.numpy()
     npimg = (np.transpose(npimg, (1, 2, 0)) * 255).astype(np.uint8)
     im = Image.fromarray(npimg)
-    filename = './results/' + Model_label + '_Test_IMG.jpeg'
+    filename = './results/' + Model_label + '_Train_Data.jpeg'
     im.save(filename)
 
 def train_cnn(log_interval, model, device, train_loader, optimizer, epoch, loss_list):
@@ -132,7 +132,7 @@ def main():
     log_interval = 10
     torch.manual_seed(1)
     save_model = True
-    TRAIN_SIZE = 7000 # If using Inception Method, due to RAM limitation, size should be small
+    TRAIN_SIZE = 100 # If using Inception Method, due to RAM limitation, size should be small
     TEST_SIZE = 2000
     loss_list = list()  
     accuracy_list = list()
@@ -215,18 +215,14 @@ def main():
                         ])),
             batch_size=TEST_SIZE, shuffle=True, **kwargs)
 
-    '''
-    # get some random training images
-    dataiter = iter(train_loader)
+
+    # get some random training images when TRAIN SIZE <= 100
     if TRAIN_SIZE <= 100:
+        dataiter = iter(train_loader)
         images, labels = dataiter.next()
         img = torchvision.utils.make_grid(images)
-    else:
-        for i in rage(100):
-            images, labels = dataiter[i]
-            img = torchvision.utils.make_grid(images)
-    imsave(img, Model_label)
-    '''
+        imsave(img, Model_label)
+    
     
 
     #######################    Run your network   ############################
