@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import StepLR
 from models.conv import Net
 from models.rnn_conv import ImageRNN
 from models.customCNN import CustomCNN
+from models.customRNN import CustomRNN
 from models.inceptionv4 import Inceptionv4
 from models.inception_resnet_v2 import Inception_ResNetv2
 import torch.nn.functional as F
@@ -89,9 +90,7 @@ def train_MyRNN(log_interval, model, device, train_loader, optimizer, epoch, los
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        # reset hidden states
-        model.hidden = model.init_hidden()
-        data = data.view(-1, 28, 28)
+        data = data.view(-1, 28, 28) # reshape data to (batch, time_step, input_size)
         outputs = model(data)
         criterion = torch.nn.CrossEntropyLoss()
         loss = criterion(outputs, target)
@@ -110,7 +109,7 @@ def test(model, device, test_loader, IfRNN, accuracy_list):
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
-            if IfRNN == 1 or IfRNN == 4: # if training method == 1, AKA RNN Method
+            if IfRNN == 1 or IfRNN == 4: # if training method == 1, Default RNN Method
                 data = torch.squeeze(data)
             data, target = data.to(device), target.to(device)
             output = model(data)
@@ -132,16 +131,16 @@ def main():
     log_interval = 10
     torch.manual_seed(1)
     save_model = True
-    TRAIN_SIZE = 100 # If using Inception Method, due to RAM limitation, size should be small
+    TRAIN_SIZE = 6000 # If using Inception Method, due to RAM limitation, size should be small
     TEST_SIZE = 2000
     loss_list = list()  
     accuracy_list = list()
 
     # Tranin Method [1: DefaultRNN, 2: CustomCNN, 3: DefaultCNN, 4: CustomRNN, 5: inceptionv4, 6: inception_resnetv2]
-    Train_Method = 2
+    Train_Method = 4
     ResizeIMG = False # Default: False, Will turn on when using Inception Methods
 
-    # RNN Configuration
+    # DefaultRNN Configuration
     N_STEPS = 28
     N_INPUTS = 28
     N_NEURONS = 150
@@ -166,9 +165,9 @@ def main():
     elif Train_Method == 3:
         model = Net().to(device)
         Model_label = 'DefaultCNN'
-    elif Train_Method == 4: # Waiting for K. W to finish her code
-        model = Net().to(device)
-        Model_label = 'DefaultCNN'
+    elif Train_Method == 4:
+        model = CustomRNN().to(device)
+        Model_label = 'CustomRNN'
     elif Train_Method == 5:
         ResizeIMG = True
         model = Inceptionv4().to(device)
