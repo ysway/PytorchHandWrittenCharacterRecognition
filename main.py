@@ -156,7 +156,6 @@ def main():
     else:
         device = torch.device("cpu")
 
-
     #######################    Build your network   ############################
     if Train_Method == 1:
         model = ImageRNN(64, N_STEPS, N_INPUTS, N_NEURONS, N_OUTPUTS, device).to(device)
@@ -224,7 +223,6 @@ def main():
         imsave(img, Model_label)
     
     
-
     #######################    Run your network   ############################
     for epoch in range(1, epoches + 1):
         if Train_Method == 1:
