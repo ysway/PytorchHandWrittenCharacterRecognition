@@ -4,11 +4,11 @@ import torch
 class CustomRNN(nn.Module):
     def __init__(self):
         super(CustomRNN,self).__init__()
-        self.hidden_size = 256 # neurons 
+        self.hidden_size = 392 # neurons 
         self.rnn = nn.LSTM(
             input_size = 28, # col of image
             hidden_size = self.hidden_size,
-            num_layers = 5, # number of hidden layer
+            num_layers = 6, # number of hidden layer
             batch_first = True,
         )
         self.out = nn.Linear(self.hidden_size, 62)

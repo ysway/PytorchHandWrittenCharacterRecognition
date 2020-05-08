@@ -1,4 +1,5 @@
 *.py~
+__pycache__
 datasets/
 results/*.pt
 .DS_Store

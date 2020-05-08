@@ -1,14 +1,14 @@
 import torch.nn as nn
 import torch
 class ImageRNN(nn.Module):
-	def __init__(self, batch_size, n_steps, n_inputs, n_neurons, n_outputs, device):
+	def __init__(self):
 		super(ImageRNN, self).__init__()
-		self.device = device
-		self.n_neurons = n_neurons   # Hidden
-		self.batch_size = batch_size
-		self.n_steps = n_steps    # 64
-		self.n_inputs = n_inputs  # 28
-		self.n_outputs = n_outputs  # 10
+		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+		self.n_neurons = 14
+		self.batch_size = 1024
+		self.n_steps = 28
+		self.n_inputs = 28
+		self.n_outputs = 62
 		# Basic RNN layer
 		self.basic_rnn = nn.RNN(self.n_inputs, self.n_neurons)
 		# Followed by a fully connected layer (LSTM is a better option)
