@@ -45,7 +45,7 @@ def main():
     IfRNN = False # Default: False, Will turn on when using RNN Methods
     
     TEST_ONLY = True # Test Mode, Load saved data and test, need to change Train_Method to matched NN as well
-    ExistedModelPath = "./results/CustomRNN_15Epoches_1500Size.pt"
+    ExistedModelPath = "./results/CustomCNN_15Epoches_1500Size.pt"
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:

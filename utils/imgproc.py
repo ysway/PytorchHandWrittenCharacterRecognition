@@ -33,7 +33,8 @@ def resultplot(Model_label, loss_list, accuracy_list, confusdata, confustarget, 
     plt.ylabel('Accuracy (%)')
     plt.ylim(0, 100)
     plt.savefig(namestr[:-2]+"png")
-    plt.show()
+    #plt.show()
+    plt.close()
 
     # confusion matrix plot and Classification Report Generation #
     # https://scikit-learn.org/stable/auto_examples/classification/plot_digits_classification.html
