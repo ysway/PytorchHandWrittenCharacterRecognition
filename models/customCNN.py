@@ -35,7 +35,7 @@ class CustomCNN(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
 
-        x = x.view(x.size(0), -1)   # 展平多维的卷积图成 (batch_size, 64 * 7 * 7)
+        x = x.view(x.size(0), -1)   # (batch_size, 64 * 7 * 7)
 
         x = self.fc1(x)
         x = F.relu(x)

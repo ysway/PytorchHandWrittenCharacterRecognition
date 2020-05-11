@@ -20,10 +20,6 @@ from utils.train import train_cnn, train_rnn, train_MyCNN, train_MyRNN
 from utils.test import test
 from utils.imgproc import imsave, resultplot
 
-# For GPU Training Library
-# Ref: https://github.com/xinntao/ESRGAN/issues/94#issuecomment-612903759
-import ctypes
-
 def main():
     epoches = 1
     gamma = 0.1
@@ -35,8 +31,10 @@ def main():
 
     num_workers = 2
 
+    # store the loss and accuracy thru training
     loss_list = list()  
     accuracy_list = list()
+    # store the test data
     confusdata = np.array([], dtype=np.uint8)
     confustarget = np.array([], dtype=np.uint8)
     # Tranin Method [1: DefaultRNN, 2: CustomCNN, 3: DefaultCNN, 4: CustomRNN, 5: inceptionv4, 6: inception_resnetv2]
@@ -46,11 +44,27 @@ def main():
     
     TEST_ONLY = True # Test Mode, Load saved data and test, need to change Train_Method to matched NN as well
     ExistedModelPath = "./results/CustomCNN_15Epoches_1500Size.pt"
+    try:
+        fh = open("ExistedModelPath", "r")
+    except IOError:
+        print("Error: Canot find target model, please check the path")
+        return # End the program
+    else:
+        fh.close()
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         device = torch.device("cuda")
-        ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
+        try:
+            # For GPU Training Library
+            # Ref: https://github.com/xinntao/ESRGAN/issues/94#issuecomment-612903759
+            import ctypes
+        except ImportError:
+            "No Module named ctypes, will try to continue without it"
+        try:
+            ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
+        except IOError:
+            "caffe2_nvrtc.dll not found, please add to path, will try to continue without it"
     else:
         device = torch.device("cpu")
 
@@ -85,17 +99,16 @@ def main():
 
     train_loader, test_loader = dataloader(TRAIN_SIZE, TEST_SIZE, num_workers, './datasets', 'byclass', ResizeIMG, use_cuda)
 
-    {imsave(train_loader, Model_label)} if TRAIN_SIZE <= 100 else {}
+    {imsave(train_loader, Model_label)} if TRAIN_SIZE <= 100 else {} # Get some training images
 
     if TEST_ONLY:
         model.load_state_dict(torch.load(ExistedModelPath))
         confusdata, confustarget = test(model, device, test_loader, IfRNN, accuracy_list, confusdata, confustarget)
         accuracy_list = [0,0]
         loss_list = [0,0]
-        savepath = ExistedModelPath[:-3] + "_TestOnly.TT"
+        savepath = ExistedModelPath[:-3] + "_TestOnly.TT" # Add testonly tag to differentiate
         resultplot(Model_label, loss_list, accuracy_list, confusdata, confustarget, savepath)
-        return
-
+        return # End the program as TEST ONLY Mode
 
     for epoch in range(1, epoches + 1):
         if Train_Method == 1:

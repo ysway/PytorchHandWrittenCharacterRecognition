@@ -8,7 +8,7 @@ def test(model, device, test_loader, IfRNN, accuracy_list, confusdata, confustar
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
-            if IfRNN: # if training method == 1, Default RNN Method
+            if IfRNN: # if training method == 1/4, RNN Method
                 data = torch.squeeze(data)
             data, target = data.to(device), target.to(device)
             output = model(data)

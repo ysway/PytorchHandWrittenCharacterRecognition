@@ -59,7 +59,7 @@ def train_MyCNN(log_interval, model, device, train_loader, optimizer, epoch, los
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def train_MyRNN(log_interval, model, device, train_loader, optimizer, epoch, loss_list): # Waiting for K. W to finish her code
+def train_MyRNN(log_interval, model, device, train_loader, optimizer, epoch, loss_list):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)

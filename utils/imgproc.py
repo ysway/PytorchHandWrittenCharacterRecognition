@@ -6,7 +6,7 @@ from PIL import Image
 import itertools
 import sklearn.metrics as skmetrics
 
-# functions to show an image
+# functions to save test image
 def imsave(train_loader, Model_label):
     dataiter = iter(train_loader)
     images, labels = dataiter.next()
@@ -17,6 +17,7 @@ def imsave(train_loader, Model_label):
     filename = './results/' + Model_label + '_Train_Data.jpeg'
     im.save(filename)
 
+# print result
 def resultplot(Model_label, loss_list, accuracy_list, confusdata, confustarget, namestr):
     plt.figure(Model_label, figsize=(12, 6))
     plt.subplot(121)
